@@ -31,12 +31,12 @@ import {
 // CONFIG FIREBASE
 // =============================
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_STORAGE_BUCKET",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyD6dti95SJBxgRPt2u1O2pfGRrECjTXzKY",
+  authDomain: "ponto-af926.firebaseapp.com",
+  projectId: "ponto-af926",
+  storageBucket: "ponto-af926.firebasestorage.app",
+  messagingSenderId: "880185927479",
+  appId: "1:880185927479:web:53df9ce864718bf6501cb2"
 };
 
 // =============================
