@@ -121,7 +121,9 @@ function getFriendlyError(error) {
   if (code.includes("permission-denied")) return "Você não tem permissão para esta ação.";
   if (code.includes("invalid-argument")) return "Dados inválidos. Verifique nome, e-mail, senha e permissão.";
   if (code.includes("functions/internal")) return "Erro interno da função.";
-  if (code.includes("auth/invalid-credential")) return "Credenciais inválidas.";
+  if (code.includes("auth/invalid-credential")) return "E-mail ou senha inválidos.";
+  if (code.includes("auth/invalid-email")) return "E-mail inválido.";
+  if (code.includes("unavailable")) return "Sem conexão com o Firestore no momento.";
   if (message) return message;
 
   return "Ocorreu um erro inesperado.";
@@ -145,8 +147,8 @@ btnLogin.addEventListener("click", async () => {
     await signInWithEmailAndPassword(auth, email, password);
     loginMsg.textContent = "";
   } catch (error) {
-    console.error(error);
-    loginMsg.textContent = "Erro ao fazer login.";
+    console.error("ERRO LOGIN:", error);
+    loginMsg.textContent = getFriendlyError(error);
   }
 });
 
@@ -157,7 +159,7 @@ btnLogout.addEventListener("click", async () => {
   try {
     await signOut(auth);
   } catch (error) {
-    console.error(error);
+    console.error("ERRO LOGOUT:", error);
   }
 });
 
@@ -177,6 +179,10 @@ onAuthStateChanged(auth, async (user) => {
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
+    console.log("UID autenticado:", user.uid);
+    console.log("Documento encontrado?", userSnap.exists());
+    console.log("Dados do usuário:", userSnap.exists() ? userSnap.data() : null);
+
     if (!userSnap.exists()) {
       userInfo.textContent = "Usuário sem cadastro na coleção users.";
       showScreen(appScreen);
@@ -189,6 +195,12 @@ onAuthStateChanged(auth, async (user) => {
       ...userSnap.data()
     };
 
+    if (currentUserData.ativo === false) {
+      userInfo.textContent = "Usuário desativado.";
+      await signOut(auth);
+      return;
+    }
+
     userInfo.textContent = `Logado como: ${currentUserData.nome} • ${currentUserData.role}`;
     showScreen(appScreen);
 
@@ -200,7 +212,18 @@ onAuthStateChanged(auth, async (user) => {
       disableAdmin();
     }
   } catch (error) {
-    console.error(error);
+    console.error("ERRO AO CARREGAR USUÁRIO:", error);
+
+    showScreen(appScreen);
+    disableAdmin();
+
+    if (error.code === "unavailable") {
+      userInfo.textContent = "Sem conexão com o Firestore no momento.";
+    } else if (error.code === "permission-denied") {
+      userInfo.textContent = "Sem permissão para carregar o usuário.";
+    } else {
+      userInfo.textContent = `Erro ao carregar usuário: ${error.message}`;
+    }
   }
 });
 
@@ -213,6 +236,11 @@ btnRegistrarPonto.addEventListener("click", async () => {
   try {
     if (!auth.currentUser || !currentUserData) {
       pontoMsg.textContent = "Usuário não autenticado.";
+      return;
+    }
+
+    if (currentUserData.ativo === false) {
+      pontoMsg.textContent = "Usuário desativado.";
       return;
     }
 
@@ -232,8 +260,8 @@ btnRegistrarPonto.addEventListener("click", async () => {
     observacao.value = "";
     pontoMsg.textContent = "Ponto registrado com sucesso.";
   } catch (error) {
-    console.error(error);
-    pontoMsg.textContent = "Erro ao registrar ponto.";
+    console.error("ERRO AO REGISTRAR PONTO:", error);
+    pontoMsg.textContent = getFriendlyError(error);
   }
 });
 
@@ -266,6 +294,9 @@ function listenMeusPontos(uid) {
       `);
       meusPontos.appendChild(item);
     });
+  }, (error) => {
+    console.error("ERRO AO OUVIR MEUS PONTOS:", error);
+    meusPontos.innerHTML = `<div class="list-item">Erro ao carregar histórico.</div>`;
   });
 }
 
@@ -323,7 +354,7 @@ btnCriarUsuario.addEventListener("click", async () => {
     adminMsg.textContent = "Usuário criado com sucesso.";
     clearAdminForm();
   } catch (error) {
-    console.error(error);
+    console.error("ERRO AO CRIAR USUÁRIO:", error);
     adminMsg.textContent = getFriendlyError(error);
   }
 });
@@ -352,6 +383,9 @@ function listenUsuarios() {
       `);
       listaUsuarios.appendChild(item);
     });
+  }, (error) => {
+    console.error("ERRO AO OUVIR USUÁRIOS:", error);
+    listaUsuarios.innerHTML = `<div class="list-item">Erro ao carregar usuários.</div>`;
   });
 }
 
@@ -377,6 +411,9 @@ function listenTodosPontos() {
       `);
       todosPontos.appendChild(item);
     });
+  }, (error) => {
+    console.error("ERRO AO OUVIR TODOS OS PONTOS:", error);
+    todosPontos.innerHTML = `<div class="list-item">Erro ao carregar registros.</div>`;
   });
 }
 
