@@ -3,125 +3,284 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Ponto</title>
+  <title>PontoPro Enterprise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
 
-    <!-- LOGIN -->
-    <section id="loginScreen" class="screen active">
+  <div class="app-shell">
+    <section id="loginScreen" class="screen active auth-layout">
+      <div class="brand-panel">
+        <span class="eyebrow">Ponto corporativo</span>
+        <h1>PontoPro Enterprise</h1>
+        <p class="muted large">
+          Sistema profissional de registro de ponto com painel administrativo, gestão de acessos,
+          histórico em tempo real e recuperação de senha.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature-card">
+            <strong>Gestão de usuários</strong>
+            <span>Criação, edição, ativação e desativação de acessos.</span>
+          </div>
+          <div class="feature-card">
+            <strong>Recuperação de senha</strong>
+            <span>Fluxo de “Esqueci minha senha” integrado com Firebase Auth.</span>
+          </div>
+          <div class="feature-card">
+            <strong>Visão empresarial</strong>
+            <span>Dashboard, filtros, auditoria operacional e UX mais profissional.</span>
+          </div>
+        </div>
+      </div>
+
       <div class="card auth-card">
-        <h1>Sistema de Ponto</h1>
-        <p class="muted">Entre com seu usuário</p>
-
-        <div class="form-group">
-          <label for="loginEmail">E-mail</label>
-          <input type="email" id="loginEmail" placeholder="seuemail@empresa.com" />
+        <div class="card-header">
+          <h2>Acessar sistema</h2>
+          <p class="muted">Entre com seu e-mail corporativo</p>
         </div>
 
-        <div class="form-group">
-          <label for="loginPassword">Senha</label>
-          <input type="password" id="loginPassword" placeholder="********" />
+        <div class="form-grid single">
+          <div class="field">
+            <label for="loginEmail">E-mail</label>
+            <input type="email" id="loginEmail" placeholder="seuemail@empresa.com" autocomplete="username" />
+          </div>
+
+          <div class="field">
+            <div class="label-row">
+              <label for="loginPassword">Senha</label>
+              <button id="btnForgotPassword" class="link-btn" type="button">Esqueci minha senha</button>
+            </div>
+            <div class="input-with-action">
+              <input type="password" id="loginPassword" placeholder="********" autocomplete="current-password" />
+              <button id="btnToggleLoginPassword" type="button" class="ghost-btn small">Mostrar</button>
+            </div>
+          </div>
         </div>
 
-        <button id="btnLogin" class="btn primary">Entrar</button>
+        <button id="btnLogin" class="btn primary full">Entrar</button>
         <p id="loginMsg" class="message"></p>
+
+        <div id="forgotPasswordBox" class="inline-box hidden">
+          <div class="field">
+            <label for="forgotPasswordEmail">Recuperar senha</label>
+            <input type="email" id="forgotPasswordEmail" placeholder="Digite o e-mail da conta" />
+          </div>
+          <div class="inline-actions">
+            <button id="btnSendReset" class="btn secondary" type="button">Enviar link</button>
+            <button id="btnCancelReset" class="btn ghost" type="button">Cancelar</button>
+          </div>
+          <p id="forgotMsg" class="message"></p>
+        </div>
       </div>
     </section>
 
-    <!-- APP -->
     <section id="appScreen" class="screen">
       <header class="topbar">
         <div>
-          <h2>Sistema de Ponto</h2>
+          <span class="eyebrow">Painel principal</span>
+          <h2>PontoPro Enterprise</h2>
           <p id="userInfo" class="muted">Carregando usuário...</p>
         </div>
+
         <div class="topbar-actions">
-          <button id="btnLogout" class="btn danger">Sair</button>
+          <div class="status-chip" id="todayStatusChip">Sem registro hoje</div>
+          <button id="btnRefresh" class="btn ghost" type="button">Atualizar</button>
+          <button id="btnLogout" class="btn danger" type="button">Sair</button>
         </div>
       </header>
 
-      <main class="main-grid">
-        <!-- COLUNA ESQUERDA -->
-        <section class="panel">
-          <h3>Registrar ponto</h3>
-
-          <div class="form-group">
-            <label for="tipoPonto">Tipo de registro</label>
-            <select id="tipoPonto">
-              <option value="entrada">Entrada</option>
-              <option value="saida">Saída</option>
-            </select>
+      <main class="content-grid">
+        <section class="panel span-12">
+          <div class="panel-header between">
+            <div>
+              <h3>Resumo operacional</h3>
+              <p class="muted">Indicadores rápidos da operação</p>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="observacao">Observação</label>
-            <textarea id="observacao" rows="3" placeholder="Opcional"></textarea>
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span class="stat-label">Registros hoje</span>
+              <strong id="kpiToday">0</strong>
+              <small>Todos os usuários</small>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Meus registros no mês</span>
+              <strong id="kpiMeMonth">0</strong>
+              <small>Histórico do colaborador</small>
+            </article>
+            <article class="stat-card admin-only hidden" id="adminKpiUsersCard">
+              <span class="stat-label">Usuários ativos</span>
+              <strong id="kpiActiveUsers">0</strong>
+              <small>Acessos liberados</small>
+            </article>
+            <article class="stat-card admin-only hidden" id="adminKpiAdminsCard">
+              <span class="stat-label">Administradores</span>
+              <strong id="kpiAdmins">0</strong>
+              <small>Contas com gestão</small>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel span-5">
+          <div class="panel-header between">
+            <div>
+              <h3>Registrar ponto</h3>
+              <p class="muted">Entrada, saída, pausa e retorno</p>
+            </div>
+            <span class="badge">Operacional</span>
           </div>
 
-          <button id="btnRegistrarPonto" class="btn primary">Bater ponto</button>
+          <div class="form-grid">
+            <div class="field">
+              <label for="tipoPonto">Tipo de registro</label>
+              <select id="tipoPonto">
+                <option value="entrada">Entrada</option>
+                <option value="saida_almoco">Saída para almoço</option>
+                <option value="retorno_almoco">Retorno do almoço</option>
+                <option value="saida">Saída</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="dataReferencia">Data de referência</label>
+              <input type="date" id="dataReferencia" />
+            </div>
+
+            <div class="field full-width">
+              <label for="observacao">Observação</label>
+              <textarea id="observacao" rows="4" placeholder="Ex.: plantão externo, atendimento em campo, ajuste aprovado pelo RH"></textarea>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button id="btnRegistrarPonto" class="btn primary" type="button">Bater ponto</button>
+            <button id="btnClearPonto" class="btn ghost" type="button">Limpar</button>
+          </div>
           <p id="pontoMsg" class="message"></p>
+        </section>
 
-          <hr />
-
-          <h3>Meu histórico</h3>
+        <section class="panel span-7">
+          <div class="panel-header between">
+            <div>
+              <h3>Meu histórico</h3>
+              <p class="muted">Últimos registros do colaborador</p>
+            </div>
+            <div class="toolbar-inline">
+              <input id="searchMyHistory" class="mini-input" type="search" placeholder="Filtrar por observação ou tipo" />
+            </div>
+          </div>
           <div id="meusPontos" class="list"></div>
         </section>
 
-        <!-- COLUNA DIREITA -->
-        <section class="panel">
-          <div class="admin-header">
-            <h3>Painel do administrador</h3>
-            <span id="adminBadge" class="badge hidden">ADMIN</span>
+        <section class="panel span-12 admin-only hidden" id="adminPanel">
+          <div class="panel-header between wrap">
+            <div>
+              <h3>Painel do administrador</h3>
+              <p class="muted">Gestão de usuários, acessos e registros</p>
+            </div>
+            <span id="adminBadge" class="badge strong">ADMIN</span>
           </div>
 
-          <div id="adminArea" class="hidden">
-            <div class="admin-grid">
-              <div class="subpanel">
-                <h4>Criar usuário</h4>
+          <div class="admin-layout">
+            <div class="subpanel">
+              <div class="panel-header between">
+                <div>
+                  <h4 id="adminFormTitle">Criar novo acesso</h4>
+                  <p class="muted">Cadastre funcionários e administradores</p>
+                </div>
+                <button id="btnCancelEditUser" class="btn ghost hidden" type="button">Cancelar edição</button>
+              </div>
 
-                <div class="form-group">
+              <div class="form-grid">
+                <div class="field">
                   <label for="novoNome">Nome</label>
                   <input type="text" id="novoNome" placeholder="Nome completo" />
                 </div>
-
-                <div class="form-group">
+                <div class="field">
                   <label for="novoEmail">E-mail</label>
                   <input type="email" id="novoEmail" placeholder="email@empresa.com" />
                 </div>
-
-                <div class="form-group">
-                  <label for="novaSenha">Senha</label>
-                  <input type="password" id="novaSenha" placeholder="********" />
+                <div class="field">
+                  <label for="novoDepartamento">Departamento</label>
+                  <input type="text" id="novoDepartamento" placeholder="Ex.: Operações" />
                 </div>
-
-                <div class="form-group">
+                <div class="field">
+                  <label for="novoCargo">Cargo</label>
+                  <input type="text" id="novoCargo" placeholder="Ex.: Analista" />
+                </div>
+                <div class="field">
                   <label for="novoRole">Permissão</label>
                   <select id="novoRole">
                     <option value="funcionario">Funcionário</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Administrador</option>
                   </select>
                 </div>
-
-                <button id="btnCriarUsuario" class="btn secondary">Criar usuário</button>
-                <p id="adminMsg" class="message"></p>
+                <div class="field" id="passwordFieldWrap">
+                  <label for="novaSenha">Senha inicial</label>
+                  <div class="input-with-action">
+                    <input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres" />
+                    <button id="btnToggleNewPassword" type="button" class="ghost-btn small">Mostrar</button>
+                  </div>
+                </div>
               </div>
 
-              <div class="subpanel">
-                <h4>Usuários cadastrados</h4>
-                <div id="listaUsuarios" class="list"></div>
+              <div class="button-row">
+                <button id="btnCriarUsuario" class="btn secondary" type="button">Criar usuário</button>
+                <button id="btnSalvarEdicaoUsuario" class="btn primary hidden" type="button">Salvar alterações</button>
               </div>
+              <p id="adminMsg" class="message"></p>
             </div>
 
-            <hr />
-
-            <h4>Registros em tempo real</h4>
-            <div id="todosPontos" class="list"></div>
+            <div class="subpanel">
+              <div class="panel-header between wrap">
+                <div>
+                  <h4>Usuários cadastrados</h4>
+                  <p class="muted">Pesquisa, edição e bloqueio de acesso</p>
+                </div>
+                <div class="toolbar-inline wrap">
+                  <input id="searchUsers" class="mini-input" type="search" placeholder="Buscar usuário" />
+                  <select id="filterRole" class="mini-input">
+                    <option value="todos">Todas as permissões</option>
+                    <option value="admin">Administradores</option>
+                    <option value="funcionario">Funcionários</option>
+                  </select>
+                  <select id="filterStatus" class="mini-input">
+                    <option value="todos">Todos os status</option>
+                    <option value="ativos">Somente ativos</option>
+                    <option value="inativos">Somente inativos</option>
+                  </select>
+                </div>
+              </div>
+              <div id="listaUsuarios" class="list large-list"></div>
+            </div>
           </div>
 
-          <div id="adminBlocked" class="muted">
-            Você não tem permissão de administrador.
+          <div class="subpanel">
+            <div class="panel-header between wrap">
+              <div>
+                <h4>Registros em tempo real</h4>
+                <p class="muted">Visão operacional do administrador</p>
+              </div>
+              <div class="toolbar-inline wrap">
+                <input id="searchRegistros" class="mini-input" type="search" placeholder="Buscar por nome, e-mail ou observação" />
+                <input id="filterDateRegistros" class="mini-input" type="date" />
+              </div>
+            </div>
+            <div id="todosPontos" class="list"></div>
+          </div>
+        </section>
+
+        <section class="panel span-12" id="adminBlocked">
+          <div class="empty-state compact">
+            <h3>Acesso padrão de colaborador</h3>
+            <p class="muted">Você está utilizando o perfil de funcionário. O painel administrativo fica disponível apenas para contas com permissão de administrador.</p>
           </div>
         </section>
       </main>
