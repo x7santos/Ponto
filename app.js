@@ -31,12 +31,12 @@ import {
 // COLE SEUS DADOS AQUI
 // =============================
 const firebaseConfig = {
-  apiKey: "COLOQUE_AQUI",
-  authDomain: "COLOQUE_AQUI",
-  projectId: "COLOQUE_AQUI",
-  storageBucket: "COLOQUE_AQUI",
-  messagingSenderId: "COLOQUE_AQUI",
-  appId: "COLOQUE_AQUI"
+  apiKey: "AIzaSyD6dti95SJBxgRPt2u1O2pfGRrECjTXzKY",
+  authDomain: "ponto-af926.firebaseapp.com",
+  projectId: "ponto-af926",
+  storageBucket: "ponto-af926.firebasestorage.app",
+  messagingSenderId: "880185927479",
+  appId: "1:880185927479:web:53df9ce864718bf6501cb2"
 };
 
 // =============================
