@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Ponto</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- LOGIN -->
+    <section id="loginScreen" class="screen active">
+      <div class="card auth-card">
+        <h1>Sistema de Ponto</h1>
+        <p class="muted">Entre com seu usuário</p>
+
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" placeholder="seuemail@empresa.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Senha</label>
+          <input type="password" id="loginPassword" placeholder="********" />
+        </div>
+
+        <button id="btnLogin" class="btn primary">Entrar</button>
+        <p id="loginMsg" class="message"></p>
+      </div>
+    </section>
+
+    <!-- APP -->
+    <section id="appScreen" class="screen">
+      <header class="topbar">
+        <div>
+          <h2>Sistema de Ponto</h2>
+          <p id="userInfo" class="muted">Carregando usuário...</p>
+        </div>
+        <div class="topbar-actions">
+          <button id="btnLogout" class="btn danger">Sair</button>
+        </div>
+      </header>
+
+      <main class="main-grid">
+        <!-- COLUNA ESQUERDA -->
+        <section class="panel">
+          <h3>Registrar ponto</h3>
+
+          <div class="form-group">
+            <label for="tipoPonto">Tipo de registro</label>
+            <select id="tipoPonto">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="observacao">Observação</label>
+            <textarea id="observacao" rows="3" placeholder="Opcional"></textarea>
+          </div>
+
+          <button id="btnRegistrarPonto" class="btn primary">Bater ponto</button>
+          <p id="pontoMsg" class="message"></p>
+
+          <hr />
+
+          <h3>Meu histórico</h3>
+          <div id="meusPontos" class="list"></div>
+        </section>
+
+        <!-- COLUNA DIREITA -->
+        <section class="panel">
+          <div class="admin-header">
+            <h3>Painel do administrador</h3>
+            <span id="adminBadge" class="badge hidden">ADMIN</span>
+          </div>
+
+          <div id="adminArea" class="hidden">
+            <div class="admin-grid">
+              <div class="subpanel">
+                <h4>Criar usuário</h4>
+
+                <div class="form-group">
+                  <label for="novoNome">Nome</label>
+                  <input type="text" id="novoNome" placeholder="Nome completo" />
+                </div>
+
+                <div class="form-group">
+                  <label for="novoEmail">E-mail</label>
+                  <input type="email" id="novoEmail" placeholder="email@empresa.com" />
+                </div>
+
+                <div class="form-group">
+                  <label for="novaSenha">Senha</label>
+                  <input type="password" id="novaSenha" placeholder="********" />
+                </div>
+
+                <div class="form-group">
+                  <label for="novoRole">Permissão</label>
+                  <select id="novoRole">
+                    <option value="funcionario">Funcionário</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <button id="btnCriarUsuario" class="btn secondary">Criar usuário</button>
+                <p id="adminMsg" class="message"></p>
+              </div>
+
+              <div class="subpanel">
+                <h4>Usuários cadastrados</h4>
+                <div id="listaUsuarios" class="list"></div>
+              </div>
+            </div>
+
+            <hr />
+
+            <h4>Registros em tempo real</h4>
+            <div id="todosPontos" class="list"></div>
+          </div>
+
+          <div id="adminBlocked" class="muted">
+            Você não tem permissão de administrador.
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
