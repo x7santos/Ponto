@@ -6,14 +6,12 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
   getFirestore,
   doc,
-  setDoc,
   getDoc,
   addDoc,
   collection,
@@ -21,22 +19,24 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot,
-  getDocs
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 // =============================
 // CONFIG FIREBASE
-// COLE SEUS DADOS AQUI
 // =============================
 const firebaseConfig = {
-  apiKey: "AIzaSyD6dti95SJBxgRPt2u1O2pfGRrECjTXzKY",
-  authDomain: "ponto-af926.firebaseapp.com",
-  projectId: "ponto-af926",
-  storageBucket: "ponto-af926.firebasestorage.app",
-  messagingSenderId: "880185927479",
-  appId: "1:880185927479:web:53df9ce864718bf6501cb2"
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_STORAGE_BUCKET",
+  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+  appId: "SEU_APP_ID"
 };
 
 // =============================
@@ -45,6 +45,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app, "southamerica-east1");
 
 // =============================
 // ELEMENTOS
@@ -97,12 +98,6 @@ function showScreen(screen) {
   screen.classList.add("active");
 }
 
-function formatDateTime(timestamp) {
-  if (!timestamp) return "Sem data";
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleString("pt-BR");
-}
-
 function clearAdminForm() {
   novoNome.value = "";
   novoEmail.value = "";
@@ -115,6 +110,21 @@ function createListItem(html) {
   div.className = "list-item";
   div.innerHTML = html;
   return div;
+}
+
+function getFriendlyError(error) {
+  const code = error?.code || "";
+  const message = error?.message || "";
+
+  if (code.includes("already-exists")) return "Este e-mail já está em uso.";
+  if (code.includes("unauthenticated")) return "Você precisa estar logado.";
+  if (code.includes("permission-denied")) return "Você não tem permissão para esta ação.";
+  if (code.includes("invalid-argument")) return "Dados inválidos. Verifique nome, e-mail, senha e permissão.";
+  if (code.includes("functions/internal")) return "Erro interno da função.";
+  if (code.includes("auth/invalid-credential")) return "Credenciais inválidas.";
+  if (message) return message;
+
+  return "Ocorreu um erro inesperado.";
 }
 
 // =============================
@@ -170,6 +180,7 @@ onAuthStateChanged(auth, async (user) => {
     if (!userSnap.exists()) {
       userInfo.textContent = "Usuário sem cadastro na coleção users.";
       showScreen(appScreen);
+      disableAdmin();
       return;
     }
 
@@ -183,7 +194,7 @@ onAuthStateChanged(auth, async (user) => {
 
     listenMeusPontos(user.uid);
 
-    if (currentUserData.role === "admin") {
+    if (String(currentUserData.role).toLowerCase() === "admin") {
       enableAdmin();
     } else {
       disableAdmin();
@@ -279,55 +290,41 @@ btnCriarUsuario.addEventListener("click", async () => {
   adminMsg.textContent = "Criando usuário...";
 
   try {
-    if (!currentUserData || currentUserData.role !== "admin") {
+    if (!currentUserData || String(currentUserData.role).toLowerCase() !== "admin") {
       adminMsg.textContent = "Sem permissão.";
       return;
     }
 
     const nome = novoNome.value.trim();
-    const email = novoEmail.value.trim();
+    const email = novoEmail.value.trim().toLowerCase();
     const senha = novaSenha.value.trim();
-    const role = novoRole.value;
+    const role = novoRole.value.trim().toLowerCase();
 
     if (!nome || !email || !senha) {
       adminMsg.textContent = "Preencha nome, e-mail e senha.";
       return;
     }
 
-    // IMPORTANTE:
-    // createUserWithEmailAndPassword troca a sessão para o novo usuário criado.
-    // Em produção, o ideal é criar usuário via Cloud Functions/Admin SDK.
-    // Aqui estou te entregando a base funcional para teste.
-
-    const adminEmailAtual = auth.currentUser.email;
-    const adminSenhaAtual = prompt("Digite novamente sua senha de admin para continuar:");
-
-    if (!adminSenhaAtual) {
-      adminMsg.textContent = "Criação cancelada.";
+    if (!["admin", "funcionario"].includes(role)) {
+      adminMsg.textContent = "Permissão inválida.";
       return;
     }
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-    const novoUid = userCredential.user.uid;
+    const createUserByAdmin = httpsCallable(functions, "createUserByAdmin");
 
-    await setDoc(doc(db, "users", novoUid), {
+    const result = await createUserByAdmin({
       nome,
       email,
-      role,
-      ativo: true,
-      criadoEm: serverTimestamp()
+      senha,
+      role
     });
 
+    console.log("Usuário criado:", result.data);
     adminMsg.textContent = "Usuário criado com sucesso.";
     clearAdminForm();
-
-    // Faz logout do usuário recém-criado e reloga no admin
-    await signOut(auth);
-    await signInWithEmailAndPassword(auth, adminEmailAtual, adminSenhaAtual);
-
   } catch (error) {
     console.error(error);
-    adminMsg.textContent = "Erro ao criar usuário.";
+    adminMsg.textContent = getFriendlyError(error);
   }
 });
 
